@@ -10,7 +10,7 @@ from .skill import Skill
 
 
 def _data_dir() -> Path:
-    base = os.environ.get("EVOSKILL_HOME", os.path.expanduser("~/.evoskill"))
+    base = os.environ.get("EVOSKILL_HOME", os.path.join(os.getcwd(), ".evoskill"))
     path = Path(base)
     path.mkdir(parents=True, exist_ok=True)
     return path

@@ -16,7 +16,7 @@ pip install -e .
 python -m pytest tests/ -v
 
 # Reset and evolve
-rm -rf ~/.evoskill
+rm -rf .evoskill
 evoskill init
 evoskill evolve -g 5 -c 4 -p 10 --provider deepseek
 ```
@@ -27,7 +27,7 @@ evoskill evolve -g 5 -c 4 -p 10 --provider deepseek
 - `agent.py` — `SkillAgent.run()` sandboxes all tool execution in `tempfile.TemporaryDirectory`.
 - `fitness.py` — `quick_fitness()` uses `FitnessEvaluator` with LLM judge (80% weight) + structural score (20%).
 - `evolution.py` — `EvolutionEngine._create_child()` weights: 55% guided, 25% random, 20% crossover.
-- `lineage.py` — `LineageTree` maintains pre-built `_children` index for O(depth) queries, persisted to `~/.evoskill/lineage.json`.
+- `lineage.py` — `LineageTree` maintains pre-built `_children` index for O(depth) queries, persisted to `.evoskill/lineage.json`.
 
 ## Key files
 
@@ -42,5 +42,5 @@ evoskill evolve -g 5 -c 4 -p 10 --provider deepseek
 | `evoskill/lineage.py` | LineageTree: inheritance DAG |
 | `evoskill/tasks.py` | 10 built-in test tasks |
 | `evoskill/tools.py` | 5 built-in tools (file, shell, search) |
-| `evoskill/storage.py` | JSON persistence under ~/.evoskill/ |
+| `evoskill/storage.py` | JSON persistence under .evoskill/ |
 | `tests/test_evolution.py` | 22 unit tests |

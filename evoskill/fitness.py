@@ -6,6 +6,7 @@ import json
 import os
 
 from .agent import SkillAgent
+from .llm import LLMClient
 from .skill import Skill
 from .tasks import BUILTIN_TASKS, EvoTask
 
@@ -39,12 +40,8 @@ class FitnessEvaluator:
 
     def _score_single_task(self, skill: Skill, task: EvoTask) -> float:
         """Run a single task and score it with LLM-as-judge."""
-        try:
-            agent = SkillAgent(skill, model=self.model)
-            result = agent.run(task.prompt)
-        except Exception as e:
-            # Agent run crashed — return a low score, don't crash the generation
-            return 3.0
+        agent = SkillAgent(skill, model=self.model)
+        result = agent.run(task.prompt)
 
         output = result.get("output", "")
         tool_calls = result.get("tool_calls", [])
@@ -62,11 +59,7 @@ class FitnessEvaluator:
             overlap = len(expected & used) / len(expected)
             structural_score += overlap * 2.0
 
-        # LLM-as-judge refinement (protected)
-        try:
-            judge_score = self._judge_output(task, output, tool_calls)
-        except Exception:
-            judge_score = 5.0  # Neutral if judge fails
+        judge_score = self._judge_output(task, output, tool_calls)
         # Weight: 20% structural, 80% judge — judge quality is what matters
         final_score = round(structural_score * 0.2 + judge_score * 0.8, 1)
         return max(1.0, min(10.0, final_score))
@@ -89,44 +82,12 @@ class FitnessEvaluator:
             f"Reply with ONLY: {{\"score\": <int 1-10>, \"reason\": \"<one sentence>\"}}"
         )
 
-        try:
-            if self.provider in ("openai", "deepseek"):
-                return self._judge_openai(judge_prompt)
-            else:
-                return self._judge_anthropic(judge_prompt)
-        except Exception:
-            return 5.0  # Fallback to neutral score
-
-    def _judge_anthropic(self, prompt: str) -> float:
-        import anthropic
-        client = anthropic.Anthropic(
-            api_key=os.environ.get("ANTHROPIC_API_KEY", "sk-placeholder")
-        )
-        resp = client.messages.create(
-            model=self.model,
+        client = LLMClient(model=self.model, provider=self.provider)
+        resp = client.chat(
+            messages=[{"role": "user", "content": judge_prompt}],
             max_tokens=256,
-            messages=[{"role": "user", "content": prompt}],
         )
-        text = resp.content[0].text if resp.content else ""
-        return self._parse_judge_response(text)
-
-    def _judge_openai(self, prompt: str) -> float:
-        from openai import OpenAI
-        openai_api_key = os.environ.get("OPENAI_API_KEY", "sk-placeholder")
-        if openai_api_key and openai_api_key != "sk-placeholder":
-            client = OpenAI(openai_api_key)
-        else:
-            client = OpenAI(
-                api_key=os.environ.get("DEEPSEEK_API_KEY"),
-                base_url="https://api.deepseek.com"
-            )
-        resp = client.chat.completions.create(
-            model=self.model,
-            max_tokens=256,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        text = resp.choices[0].message.content or ""
-        return self._parse_judge_response(text)
+        return self._parse_judge_response(resp.content or "")
 
     def _parse_judge_response(self, text: str) -> float:
         """Extract score from LLM judge response."""

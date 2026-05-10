@@ -22,12 +22,14 @@ class EvolutionEngine:
         model: str | None = None,
         evaluator: FitnessEvaluator | None = None,
         on_generation: Callable | None = None,
+        guided_weight: float = 0.55,
     ):
         self.population_size = population_size
         self.elite_count = elite_count
         self.children_per_generation = children_per_generation
         self.model = model
         self.evaluator = evaluator or FitnessEvaluator(model=model)
+        self.guided_weight = guided_weight
         self.on_generation = on_generation  # Callback(generation_num, population, new_children)
         self.generation = 0
 
@@ -121,11 +123,12 @@ class EvolutionEngine:
         """Create a child skill from one or two parents.
 
         Strategy weights:
-        - 55% LLM-guided mutation: pick best parent, ask LLM to improve its prompt
+        - guided_weight: LLM-guided mutation (default 55%)
         - 20% crossover: combine two parents
-        - 25% random mutation: maintain diversity
+        - remainder: random mutation, maintain diversity
         """
         roll = random.random()
+        guided_cutoff = 0.20 + self.guided_weight
 
         if len(parents) >= 2 and roll < 0.20:
             # Crossover
@@ -135,7 +138,7 @@ class EvolutionEngine:
             parent_ids = [p1.id, p2.id]
             name_base = f"cross_{p1.id[:4]}_{p2.id[:4]}"
 
-        elif roll < 0.75:
+        elif roll < guided_cutoff and self.guided_weight > 0:
             # LLM-guided mutation — pick the best-scoring parent
             parents.sort(key=lambda s: s.fitness, reverse=True)
             parent = parents[0]
@@ -163,11 +166,12 @@ class EvolutionEngine:
         return child
 
 
-def evolve_step(population: list[Skill], num_children: int = 4) -> list[Skill]:
+def evolve_step(population: list[Skill], num_children: int = 4, guided_weight: float = 0.55) -> list[Skill]:
     """Standalone: run one evolution step on a population. Returns new skills only."""
     engine = EvolutionEngine(
         population_size=len(population) + num_children,
         children_per_generation=num_children,
+        guided_weight=guided_weight,
     )
     engine.generation = max((s.generation for s in population), default=0) + 1
 

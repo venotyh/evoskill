@@ -21,3 +21,6 @@ Thumbs.db
 
 # Project runtime data (local only)
 .evoskill/
+
+# MCP config may contain API keys
+.mcp.json

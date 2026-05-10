@@ -55,12 +55,7 @@ class Mutator:
         provider = provider or os.environ.get("EVOSKILL_PROVIDER", "deepseek")
 
         mutation_prompt = _build_guided_mutation_prompt(genome)
-        try:
-            llm_response = _call_llm_for_mutation(mutation_prompt, model, provider)
-        except Exception as e:
-            print(f"  [dim]Guided mutation LLM failed ({e}), falling back to random[/dim]", file=sys.stderr)
-            llm_response = None
-
+        llm_response = _call_llm_for_mutation(mutation_prompt, model, provider)
         if not llm_response:
             return Mutator.mutate_prompt(genome)
 
@@ -288,50 +283,15 @@ Keep it concise. The system prompt should be 2-5 sentences. Instructions should 
 
 
 def _call_llm_for_mutation(prompt: str, model: str, provider: str) -> str | None:
-    """Call an LLM for guided mutation. Returns response text or None."""
-    import sys
-    try:
-        if provider in ("openai", "deepseek"):
-            return _mutation_call_openai(prompt, model, provider)
-        else:
-            return _mutation_call_anthropic(prompt, model)
-    except Exception as e:
-        print(f"  [yellow]Mutation LLM error: {type(e).__name__}: {e}[/yellow]", file=sys.stderr)
-        return None
-
-
-def _mutation_call_openai(prompt: str, model: str, provider: str) -> str:
-    from openai import OpenAI
-
-    if provider == "deepseek" or os.environ.get("DEEPSEEK_API_KEY"):
-        client = OpenAI(
-            api_key=os.environ.get("DEEPSEEK_API_KEY"),
-            base_url="https://api.deepseek.com",
-        )
-    else:
-        client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-
-    resp = client.chat.completions.create(
-        model=model,
+    """Call an LLM for guided mutation. Returns response text or None if empty."""
+    from .llm import LLMClient as _LLMClient
+    client = _LLMClient(model=model, provider=provider)
+    resp = client.chat(
+        messages=[{"role": "user", "content": prompt}],
         max_tokens=1024,
         temperature=0.8,
-        messages=[{"role": "user", "content": prompt}],
     )
-    return resp.choices[0].message.content
-
-
-def _mutation_call_anthropic(prompt: str, model: str) -> str:
-    import anthropic
-    client = anthropic.Anthropic(
-        api_key=os.environ.get("ANTHROPIC_API_KEY", "sk-placeholder"),
-    )
-    resp = client.messages.create(
-        model=model,
-        max_tokens=1024,
-        temperature=0.8,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    return resp.content[0].text if resp.content else ""
+    return resp.content
 
 
 def _extract_section(text: str, section: str) -> str | None:

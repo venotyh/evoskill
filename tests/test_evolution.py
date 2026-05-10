@@ -235,7 +235,7 @@ class TestEvolution:
         from evoskill.evolution import evolve_step
         seed = create_seed_skill()
         save_skill(seed)
-        children = evolve_step([seed], num_children=3)
+        children = evolve_step([seed], num_children=3, guided_weight=0)
         assert len(children) == 3
         for child in children:
             assert child.generation == 1

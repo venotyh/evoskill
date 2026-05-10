@@ -258,5 +258,23 @@ def delete(skill_id: str):
         console.print(f"[red]Failed to delete: {skill_id}[/red]")
 
 
+@main.command()
+@click.option("--host", default="127.0.0.1", help="Host to bind to.")
+@click.option("--port", default=8765, help="Port to listen on.")
+def gateway(host: str, port: int):
+    """Start a local LLM proxy gateway.
+
+    Presents an OpenAI-compatible API at /v1/chat/completions.
+    Routes to Anthropic, OpenAI, or DeepSeek based on the model name.
+    """
+    from .gateway import serve_gateway
+    console.print(f"[bold cyan]Starting EvoSkill LLM Gateway[/bold cyan]")
+    console.print(f"  Listening on: http://{host}:{port}")
+    console.print(f"  Endpoint:     http://{host}:{port}/v1/chat/completions")
+    console.print(f"  Provider:     auto-detected from model name")
+    console.print("[dim]Press Ctrl+C to stop.[/dim]\n")
+    serve_gateway(host=host, port=port)
+
+
 if __name__ == "__main__":
     main()

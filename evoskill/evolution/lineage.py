@@ -6,8 +6,8 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
-from .skill import Skill
-from .storage import load_lineage, load_skill, save_lineage
+from ..core.skill import Skill
+from ..infra.storage import load_lineage, load_skill, save_lineage
 
 
 @dataclass
@@ -226,7 +226,7 @@ def sync_lineage_from_disk() -> LineageTree:
 
     Loads all skills, then persists lineage.json once (O(n) reads, 1 write).
     """
-    from .storage import list_skills
+    from ..infra.storage import list_skills
     tree = LineageTree()
     tree.nodes.clear()
     skills = list_skills()

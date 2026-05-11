@@ -6,7 +6,7 @@ import json
 import os
 from pathlib import Path
 
-from .skill import Skill
+from ..core.skill import Skill
 
 
 def _data_dir() -> Path:

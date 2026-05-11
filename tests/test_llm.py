@@ -10,7 +10,7 @@ from http.server import HTTPServer
 
 import pytest
 
-from evoskill.llm import LLMClient, ChatResponse, ToolCall
+from evoskill.infra.llm import LLMClient, ChatResponse, ToolCall
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -131,7 +131,7 @@ class TestDeepSeekGateway:
         if reason:
             pytest.skip(reason)
 
-        from evoskill.gateway import serve_gateway, _ThreadingHTTPServer, GatewayHandler
+        from evoskill.infra.gateway import serve_gateway, _ThreadingHTTPServer, GatewayHandler
 
         self._server = _ThreadingHTTPServer(("127.0.0.1", 0), GatewayHandler)
         self._port = self._server.server_address[1]

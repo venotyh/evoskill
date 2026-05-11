@@ -5,9 +5,9 @@ from __future__ import annotations
 import random
 from typing import Callable
 
-from .genome import Mutator
-from .skill import Skill, MutationType, create_seed_skill
-from .storage import list_skills, save_skill
+from ..core.genome import Mutator
+from ..core.skill import Skill, MutationType, create_seed_skill
+from ..infra.storage import list_skills, save_skill
 from .fitness import FitnessEvaluator, quick_fitness
 
 

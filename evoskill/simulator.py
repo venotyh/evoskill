@@ -10,9 +10,9 @@ from rich.table import Table
 from rich.live import Live
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
 
-from .evolution import EvolutionEngine
-from .lineage import LineageTree
-from .storage import save_state, load_state
+from .evolution.engine import EvolutionEngine
+from .evolution.lineage import LineageTree
+from .infra.storage import save_state, load_state
 
 
 class SleepSimulator:
@@ -87,7 +87,7 @@ class SleepSimulator:
             self.history.append(result)
 
             # Update lineage
-            from .storage import list_skills
+            from .infra.storage import list_skills
             for skill in list_skills():
                 self.lineage.add_skill(skill)
 

@@ -5,10 +5,10 @@ import tempfile
 
 import pytest
 
-from evoskill.skill import Skill, create_seed_skill
-from evoskill.genome import SkillGenome, Mutator
-from evoskill.storage import save_skill, load_skill, list_skills, delete_skill
-from evoskill.lineage import LineageTree, sync_lineage_from_disk
+from evoskill.core.skill import Skill, create_seed_skill
+from evoskill.core.genome import SkillGenome, Mutator
+from evoskill.infra.storage import save_skill, load_skill, list_skills, delete_skill
+from evoskill.evolution.lineage import LineageTree, sync_lineage_from_disk
 
 
 @pytest.fixture
@@ -126,7 +126,7 @@ class TestStorage:
         assert load_skill(skill.id) is None
 
     def test_lineage_persistence(self, temp_evoskill_home):
-        from evoskill.storage import save_lineage, load_lineage
+        from evoskill.infra.storage import save_lineage, load_lineage
         data = {"nodes": {"a": {"skill_id": "a", "name": "test", "parent_ids": [], "generation": 0, "fitness": 5.0, "mutation_type": "seed", "mutation_desc": "", "created_at": ""}}, "edges": []}
         save_lineage(data)
         loaded = load_lineage()
@@ -226,13 +226,13 @@ class TestLineage:
 
 class TestEvolution:
     def test_initialization(self, temp_evoskill_home):
-        from evoskill.evolution import EvolutionEngine
+        from evoskill.evolution.engine import EvolutionEngine
         engine = EvolutionEngine(population_size=5, children_per_generation=3)
         pop = engine.initialize_population()
         assert len(pop) >= 1
 
     def test_evolve_step(self, temp_evoskill_home):
-        from evoskill.evolution import evolve_step
+        from evoskill.evolution.engine import evolve_step
         seed = create_seed_skill()
         save_skill(seed)
         children = evolve_step([seed], num_children=3, guided_weight=0)
@@ -243,7 +243,7 @@ class TestEvolution:
             assert child.mutation_type is not None
 
     def test_create_child(self, temp_evoskill_home):
-        from evoskill.evolution import EvolutionEngine
+        from evoskill.evolution.engine import EvolutionEngine
         engine = EvolutionEngine(population_size=5, children_per_generation=3)
         engine.generation = 1
         parents = [create_seed_skill() for _ in range(3)]

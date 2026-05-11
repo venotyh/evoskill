@@ -9,11 +9,11 @@ import click
 from rich.console import Console
 from rich.table import Table
 
-from .skill import create_seed_skill
-from .storage import save_skill, list_skills, load_skill, delete_skill
-from .lineage import LineageTree, sync_lineage_from_disk
-from .evolution import EvolutionEngine
-from .agent import SkillAgent
+from .core.skill import create_seed_skill
+from .infra.storage import save_skill, list_skills, load_skill, delete_skill
+from .evolution.lineage import LineageTree, sync_lineage_from_disk
+from .evolution.engine import EvolutionEngine
+from .runtime.agent import SkillAgent
 from .simulator import SleepSimulator
 
 

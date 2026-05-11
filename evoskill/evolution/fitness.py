@@ -5,10 +5,10 @@ from __future__ import annotations
 import json
 import os
 
-from .agent import SkillAgent
-from .llm import LLMClient
-from .skill import Skill
-from .tasks import BUILTIN_TASKS, EvoTask
+from ..runtime.agent import SkillAgent
+from ..infra.llm import LLMClient
+from ..core.skill import Skill
+from ..core.tasks import BUILTIN_TASKS, EvoTask
 
 
 class FitnessEvaluator:

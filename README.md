@@ -38,17 +38,23 @@ evoskill sleep -g 20
 
 ```
 evoskill/
-├── cli.py          # CLI (click): init, run, evolve, sleep, lineage, list
-├── skill.py        # Skill data model (genome + metadata + fitness)
-├── genome.py       # Genome ops & mutation (guided/random/crossover)
-├── agent.py        # Agent loop (LLM + tool execution, sandboxed)
-├── tools.py        # Built-in tools (file, shell, search)
-├── fitness.py      # LLM-as-judge fitness evaluation
-├── evolution.py    # Evolution engine (select/mutate/evaluate/prune)
-├── lineage.py      # Inheritance DAG with ASCII tree rendering
-├── simulator.py    # Sleep mode background evolution
-├── storage.py      # JSON persistence (~/.evoskill/)
-└── tasks.py        # 10 built-in evaluation tasks
+├── cli.py              # CLI (click): init, run, evolve, sleep, lineage, list
+├── simulator.py        # Sleep-mode background evolution
+├── core/               # Domain models
+│   ├── skill.py        # Skill data model (genome + metadata + fitness)
+│   ├── genome.py       # Genome ops & mutation (guided/random/crossover)
+│   └── tasks.py        # 10 built-in evaluation tasks
+├── infra/              # I/O
+│   ├── llm.py          # Unified LLM client (Anthropic / OpenAI / DeepSeek)
+│   ├── storage.py      # JSON persistence (.evoskill/)
+│   └── gateway.py      # OpenAI-compatible local HTTP proxy
+├── runtime/            # Execution
+│   ├── agent.py        # Agent loop (LLM + tool execution, sandboxed)
+│   └── tools.py        # Built-in tools (file, shell, search)
+└── evolution/          # Evolutionary algorithms
+    ├── engine.py       # Evolution engine (select/mutate/evaluate/prune)
+    ├── fitness.py      # LLM-as-judge fitness evaluation
+    └── lineage.py      # Inheritance DAG with ASCII tree rendering
 ```
 
 ## Key Design

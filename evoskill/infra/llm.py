@@ -292,4 +292,3 @@ def _from_openai_response(resp: Any) -> ChatResponse:
                 input=json.loads(args) if isinstance(args, str) else args,
             ))
     return ChatResponse(content=msg.content, tool_calls=tool_calls)
-

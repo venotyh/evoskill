@@ -50,7 +50,6 @@ class Mutator:
         provider: str | None = None,
     ) -> tuple[SkillGenome, str]:
         """LLM-guided mutation: ask an LLM to improve the skill's prompt."""
-        import sys
         model = model or os.environ.get("EVOSKILL_MODEL", "deepseek-chat")
         provider = provider or os.environ.get("EVOSKILL_PROVIDER", "deepseek")
 
@@ -284,7 +283,7 @@ Keep it concise. The system prompt should be 2-5 sentences. Instructions should 
 
 def _call_llm_for_mutation(prompt: str, model: str, provider: str) -> str | None:
     """Call an LLM for guided mutation. Returns response text or None if empty."""
-    from .llm import LLMClient as _LLMClient
+    from ..infra.llm import LLMClient as _LLMClient
     client = _LLMClient(model=model, provider=provider)
     resp = client.chat(
         messages=[{"role": "user", "content": prompt}],

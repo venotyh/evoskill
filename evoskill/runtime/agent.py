@@ -7,8 +7,8 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from .llm import LLMClient
-from .skill import Skill
+from ..infra.llm import LLMClient
+from ..core.skill import Skill
 from .tools import BUILTIN_TOOLS, execute_tool
 
 

@@ -8,6 +8,7 @@ from typing import Callable
 from ..core.genome import Mutator
 from ..core.skill import Skill, MutationType, create_seed_skill
 from ..infra.storage import list_skills, save_skill
+from ..infra.config import get_config
 from .fitness import FitnessEvaluator, quick_fitness
 
 
@@ -24,10 +25,12 @@ class EvolutionEngine:
         on_generation: Callable | None = None,
         guided_weight: float = 0.55,
     ):
+        cfg = get_config()
         self.population_size = population_size
         self.elite_count = elite_count
         self.children_per_generation = children_per_generation
-        self.model = model
+        self.model = model or cfg.model
+        self.provider = cfg.provider
         self.evaluator = evaluator or FitnessEvaluator(model=model)
         self.guided_weight = guided_weight
         self.on_generation = on_generation  # Callback(generation_num, population, new_children)
@@ -142,7 +145,7 @@ class EvolutionEngine:
             # LLM-guided mutation — pick the best-scoring parent
             parents.sort(key=lambda s: s.fitness, reverse=True)
             parent = parents[0]
-            new_genome, desc = Mutator.mutate_guided(parent.genome)
+            new_genome, desc = Mutator.mutate_guided(parent.genome, model=self.model, provider=self.provider)
             mutation_type = MutationType.PROMPT_MUTATE
             parent_ids = [parent.id]
             name_base = f"guided_{parent.id[:4]}"

@@ -7,7 +7,6 @@ parsing) lives here. Every LLM call in the project goes through this module.
 from __future__ import annotations
 
 import json
-import os
 import uuid
 from dataclasses import dataclass, field
 from typing import Any
@@ -34,7 +33,8 @@ def detect_provider(model: str) -> str:
         return "openai"
     if any(m.startswith(p) for p in ("deepseek-",)):
         return "deepseek"
-    return os.environ.get("EVOSKILL_PROVIDER", "anthropic")
+    from .config import get_config
+    return get_config().provider
 
 
 class LLMClient:
@@ -55,7 +55,8 @@ class LLMClient:
         provider: str | None = None,
         base_url: str | None = None,
     ):
-        self.model = model or os.environ.get("EVOSKILL_MODEL", "claude-sonnet-4-20250514")
+        from .config import get_config
+        self.model = model or get_config().model
         self.provider = provider or detect_provider(self.model)
         self.base_url = base_url
 
@@ -86,8 +87,9 @@ class LLMClient:
     ) -> ChatResponse:
         import anthropic
 
+        from .config import get_config
         client = anthropic.Anthropic(
-            api_key=os.environ.get("ANTHROPIC_API_KEY", "sk-placeholder"),
+            api_key=get_config().anthropic_api_key or "sk-placeholder",
             timeout=timeout,
         )
         anthropic_msgs = _to_anthropic_messages(messages)
@@ -121,15 +123,17 @@ class LLMClient:
     ) -> ChatResponse:
         from openai import OpenAI
 
+        from .config import get_config
+        cfg = get_config()
         if self.provider == "deepseek":
             client = OpenAI(
-                api_key=os.environ.get("DEEPSEEK_API_KEY"),
+                api_key=cfg.deepseek_api_key or None,
                 base_url=self.base_url or "https://api.deepseek.com",
                 timeout=timeout,
             )
         else:
             client = OpenAI(
-                api_key=os.environ.get("OPENAI_API_KEY"),
+                api_key=cfg.openai_api_key or None,
                 timeout=timeout,
             )
 

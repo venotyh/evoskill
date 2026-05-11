@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import json
-import os
 
 from ..runtime.agent import SkillAgent
 from ..infra.llm import LLMClient
+from ..infra.config import get_config
 from ..core.skill import Skill
 from ..core.tasks import BUILTIN_TASKS, EvoTask
 
@@ -15,8 +15,9 @@ class FitnessEvaluator:
     """Evaluates skill fitness by running tasks and scoring with LLM-as-judge."""
 
     def __init__(self, model: str | None = None, task_subset: list[str] | None = None):
-        self.model = model or os.environ.get("EVOSKILL_MODEL", "claude-sonnet-4-20250514")
-        self.provider = os.environ.get("EVOSKILL_PROVIDER", "anthropic")
+        cfg = get_config()
+        self.model = model or cfg.model
+        self.provider = cfg.provider
         self.tasks = self._select_tasks(task_subset)
 
     def _select_tasks(self, subset: list[str] | None) -> list[EvoTask]:

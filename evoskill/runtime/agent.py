@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import os
 import tempfile
 from pathlib import Path
 from typing import Any
 
 from ..infra.llm import LLMClient
+from ..infra.config import get_config
 from ..core.skill import Skill
 from .tools import BUILTIN_TOOLS, execute_tool
 
@@ -23,8 +23,9 @@ class SkillAgent:
 
     def __init__(self, skill: Skill, model: str | None = None):
         self.skill = skill
-        self.model = model or os.environ.get("EVOSKILL_MODEL", "claude-sonnet-4-20250514")
-        self.provider = os.environ.get("EVOSKILL_PROVIDER", "anthropic")
+        cfg = get_config()
+        self.model = model or cfg.model
+        self.provider = cfg.provider
 
     def run(self, task: str) -> dict[str, Any]:
         """Run the skill against a task. Returns {output, tool_calls, rounds, success}.

@@ -3,15 +3,14 @@
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 
 from ..core.skill import Skill
+from .config import get_config
 
 
 def _data_dir() -> Path:
-    base = os.environ.get("EVOSKILL_HOME", os.path.join(os.getcwd(), ".evoskill"))
-    path = Path(base)
+    path = Path(get_config().data_dir)
     path.mkdir(parents=True, exist_ok=True)
     return path
 

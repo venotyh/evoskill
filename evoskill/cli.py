@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import sys
 
 import click
@@ -11,6 +10,14 @@ from rich.table import Table
 
 from .core.skill import create_seed_skill
 from .infra.storage import save_skill, list_skills, load_skill, delete_skill
+from .infra.config import (
+    get_config,
+    apply_overrides,
+    save_config,
+    load_config_file,
+    get_config_file,
+    _VALID_KEYS,
+)
 from .evolution.lineage import LineageTree, sync_lineage_from_disk
 from .evolution.engine import EvolutionEngine
 from .runtime.agent import SkillAgent
@@ -30,20 +37,24 @@ def main():
     pass
 
 
+_PROVIDER_DEFAULT_MODELS = {
+    "openai": "gpt-4o",
+    "anthropic": "claude-sonnet-4-20250514",
+    "deepseek": "deepseek-v4-flash",
+}
+
+
 def _apply_provider(provider: str | None, model: str | None) -> None:
-    """Apply provider/model overrides to environment."""
+    """Apply provider/model CLI flags as runtime overrides."""
+    overrides: dict[str, str] = {}
     if provider:
-        os.environ["EVOSKILL_PROVIDER"] = provider
-        # Set sensible model defaults per provider
-        if not model and not os.environ.get("EVOSKILL_MODEL"):
-            defaults = {
-                "openai": "gpt-4o",
-                "anthropic": "claude-sonnet-4-20250514",
-                "deepseek": "deepseek-v4-flash",
-            }
-            os.environ["EVOSKILL_MODEL"] = defaults.get(provider, provider)
+        overrides["provider"] = provider
+        if not model:
+            overrides["model"] = _PROVIDER_DEFAULT_MODELS.get(provider, provider)
     if model:
-        os.environ["EVOSKILL_MODEL"] = model
+        overrides["model"] = model
+    if overrides:
+        apply_overrides(**overrides)
 
 
 @main.command()
@@ -63,7 +74,7 @@ def init(model: str | None, provider: str | None):
     console.print(f"[green]Seed skill created:[/green] {seed.name} ({seed.id})")
     console.print(f"  Tools: {', '.join(seed.genome.tool_bindings)}")
     console.print(f"  Instructions: {len(seed.genome.instructions)} rules")
-    console.print(f"  Stored at: {os.environ.get('EVOSKILL_HOME', '~/.evoskill')}")
+    console.print(f"  Stored at: {get_config().data_dir}")
 
 
 @main.command()
@@ -256,6 +267,56 @@ def delete(skill_id: str):
         console.print(f"[green]Deleted:[/green] {skill.name} ({skill_id})")
     else:
         console.print(f"[red]Failed to delete: {skill_id}[/red]")
+
+
+@main.group()
+def config():
+    """Manage EvoSkill configuration (~/.evoskill/config.toml)."""
+    pass
+
+
+@config.command("show")
+def config_show():
+    """Display the current resolved configuration."""
+    cfg = get_config()
+    cfg_file = get_config_file()
+
+    console.print(f"[bold cyan]EvoSkill Configuration[/bold cyan]  [dim]{cfg_file}[/dim]\n")
+
+    table = Table(show_header=True, header_style="bold")
+    table.add_column("Key", style="cyan")
+    table.add_column("Value", style="green")
+
+    def mask(val: str) -> str:
+        return val[:4] + "***" + val[-4:] if len(val) > 12 else ("***" if val else "[dim]—[/dim]")
+
+    table.add_row("provider", cfg.provider)
+    table.add_row("model", cfg.model)
+    table.add_row("anthropic_api_key", mask(cfg.anthropic_api_key))
+    table.add_row("openai_api_key", mask(cfg.openai_api_key))
+    table.add_row("deepseek_api_key", mask(cfg.deepseek_api_key))
+    table.add_row("data_dir", cfg.data_dir)
+    console.print(table)
+
+
+@config.command("set")
+@click.argument("key")
+@click.argument("value")
+def config_set(key: str, value: str):
+    """Set a configuration value and save to ~/.evoskill/config.toml.
+
+    Valid keys: provider, model, anthropic_api_key, openai_api_key,
+    deepseek_api_key, data_dir
+    """
+    if key not in _VALID_KEYS:
+        console.print(f"[red]Unknown key:[/red] {key}")
+        console.print(f"[dim]Valid keys: {', '.join(sorted(_VALID_KEYS))}[/dim]")
+        raise SystemExit(1)
+
+    cfg = load_config_file()
+    setattr(cfg, key, value)
+    path = save_config(cfg)
+    console.print(f"[green]Saved:[/green] {key} = {value!r}  →  {path}")
 
 
 @main.command()

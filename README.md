@@ -38,15 +38,16 @@ evoskill sleep -g 20
 
 ```
 evoskill/
-├── cli.py              # CLI (click): init, run, evolve, sleep, lineage, list
+├── cli.py              # CLI (click): init, run, evolve, sleep, lineage, list, config
 ├── simulator.py        # Sleep-mode background evolution
 ├── core/               # Domain models
 │   ├── skill.py        # Skill data model (genome + metadata + fitness)
 │   ├── genome.py       # Genome ops & mutation (guided/random/crossover)
 │   └── tasks.py        # 10 built-in evaluation tasks
 ├── infra/              # I/O
+│   ├── config.py       # User config (~/.evoskill/config.toml)
 │   ├── llm.py          # Unified LLM client (Anthropic / OpenAI / DeepSeek)
-│   ├── storage.py      # JSON persistence (.evoskill/)
+│   ├── storage.py      # JSON persistence (~/.evoskill/)
 │   └── gateway.py      # OpenAI-compatible local HTTP proxy
 ├── runtime/            # Execution
 │   ├── agent.py        # Agent loop (LLM + tool execution, sandboxed)
@@ -69,13 +70,23 @@ evoskill/
 
 ## Provider Setup
 
+Configuration is stored in `~/.evoskill/config.toml`:
+
 ```bash
-export DEEPSEEK_API_KEY=sk-...
-evoskill evolve --provider deepseek
+# Anthropic (default)
+evoskill config set provider anthropic
+evoskill config set anthropic_api_key sk-ant-...
 
-export ANTHROPIC_API_KEY=sk-ant-...
-evoskill evolve --provider anthropic
+# DeepSeek
+evoskill config set provider deepseek
+evoskill config set deepseek_api_key sk-...
 
-export OPENAI_API_KEY=sk-...
-evoskill evolve --provider openai
+# OpenAI
+evoskill config set provider openai
+evoskill config set openai_api_key sk-...
+
+# Inspect resolved config
+evoskill config show
 ```
+
+Environment variables (`ANTHROPIC_API_KEY`, `DEEPSEEK_API_KEY`, `OPENAI_API_KEY`, `EVOSKILL_PROVIDER`, `EVOSKILL_MODEL`) are still supported and override the config file — useful for CI/CD.

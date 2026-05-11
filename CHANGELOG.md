@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Added
+- `evoskill/infra/config.py` — centralized `Config` dataclass; `get_config()` resolves config in priority order: `~/.evoskill/config.toml` → env vars → CLI runtime overrides
+- `evoskill config show` — display the current resolved configuration with masked API keys
+- `evoskill config set KEY VALUE` — persist a config value to `~/.evoskill/config.toml`
+
+### Changed
+- Default data directory moved from `{cwd}/.evoskill` to `~/.evoskill`
+- All scattered `os.environ.get` calls consolidated into `infra/config.py`; env vars remain supported as an override layer for CI/CD compatibility
+- `_apply_provider()` in CLI now calls `apply_overrides()` instead of mutating `os.environ`
+- `EvolutionEngine` and `FitnessEvaluator` resolve model/provider from config at init; `mutate_guided()` receives model/provider explicitly from the engine
+
 ### New Modules
 - **`evoskill/llm.py`** — Unified LLM client with single interface for Anthropic, OpenAI, and DeepSeek
   - Auto-detects provider from model name prefix

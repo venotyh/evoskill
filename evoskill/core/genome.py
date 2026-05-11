@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import random
 from copy import deepcopy
 from dataclasses import dataclass, field
@@ -50,8 +49,8 @@ class Mutator:
         provider: str | None = None,
     ) -> tuple[SkillGenome, str]:
         """LLM-guided mutation: ask an LLM to improve the skill's prompt."""
-        model = model or os.environ.get("EVOSKILL_MODEL", "deepseek-chat")
-        provider = provider or os.environ.get("EVOSKILL_PROVIDER", "deepseek")
+        model = model or "claude-sonnet-4-20250514"
+        provider = provider or "anthropic"
 
         mutation_prompt = _build_guided_mutation_prompt(genome)
         llm_response = _call_llm_for_mutation(mutation_prompt, model, provider)

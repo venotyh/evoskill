@@ -59,3 +59,6 @@ Dependency flow (one direction only): `core` ← `infra` ← `runtime` ← `evol
 - `evolution/fitness.py` — `quick_fitness()` uses `FitnessEvaluator` with LLM judge (80% weight) + structural score (20%).
 - `evolution/engine.py` — `EvolutionEngine._create_child()` weights: 55% guided, 25% random, 20% crossover.
 - `evolution/lineage.py` — `LineageTree` maintains pre-built `_children` index for O(depth) queries, persisted to `.evoskill/lineage.json`.
+
+## Rules
+-- When running tests, the complete stdout/stderr output must be returned.

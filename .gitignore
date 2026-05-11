@@ -24,3 +24,6 @@ Thumbs.db
 
 # MCP config may contain API keys
 .mcp.json
+
+# CLAUDE
+.claude

@@ -1,3 +1,5 @@
+# No!!! This project is absolute bullshit.
+
 # EvoSkill
 
 Evolutionary skill agent — skills that breed, mutate, and improve through sleep-time simulation.
